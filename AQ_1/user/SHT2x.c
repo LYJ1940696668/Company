@@ -353,7 +353,7 @@ float Read_T(void)
 					}
 					if((temperature_flag == 1) && (Boot_StrapTime() > 30))
 					{
-						Temperature = temperature - 3.0;  //返回温度
+						Temperature = temperature - 4.0;  //返回温度
 					}
 				}	
 

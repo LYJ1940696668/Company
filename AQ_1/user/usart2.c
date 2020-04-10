@@ -52,13 +52,9 @@ void USART_Configuration(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(GPIOA,&GPIO_InitStructure);
 
-	
 	GPIO_SetBits(GPIOA,GPIO_Pin_1);
 	GPIO_ResetBits(GPIOA,GPIO_Pin_0);      // 使能接收
 	
-
-
-
 	USART_InitStructure.USART_BaudRate = 2400;		//设置USART传输的波特率
 	USART_InitStructure.USART_WordLength = USART_WordLength_9b;	//8位数据位
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;	//在一帧数据传输完再传一位停止位

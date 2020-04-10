@@ -27,14 +27,25 @@ Project File Date:  04/08/2020
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'd:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'uCGUI'
-".\Output\Tiky_uCGUI_DEMO.axf" - 0 Error(s), 0 Warning(s).
+compiling SHT2x.c...
+user\SHT2x.c(302): warning:  #177-D: variable "Min" was declared but never referenced
+  	uint8_t Time,Hour,Min;
+user\SHT2x.c(371): warning:  #940-D: missing return statement at end of non-void function "Read_T"
+  }
+user\SHT2x.c(406): warning:  #940-D: missing return statement at end of non-void function "Read_H"
+  }
+user\SHT2x.c: 3 warnings, 0 errors
+linking...
+Program Size: Code=57408 RO-data=308780 RW-data=2240 ZI-data=1093776  
+FromELF: creating hex file...
+".\Output\Tiky_uCGUI_DEMO.axf" - 0 Error(s), 3 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   D:\公司\环境监测相关\2020-04-07测试\AQ_1\RTE
   d:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.1.0\Device\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:01
+Build Time Elapsed:  00:00:03
 </pre>
 </body>
 </html>
