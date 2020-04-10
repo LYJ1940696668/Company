@@ -190,9 +190,9 @@ void turn_ascii(void)
 		dat[45]=0x0d;               //回车
 		dat[46]=0x0a;             //换行
 		
-		__set_FAULTMASK(1);//关闭全部中断
+//		__set_FAULTMASK(1);//关闭全部中断
 		WriteToSD_Env(dat,16);
-		__set_FAULTMASK(0);//打开全部中断
+//		__set_FAULTMASK(0);//打开全部中断
 		
 		printf("write env data\n");
 		onlyone = 0;
@@ -258,9 +258,9 @@ void turn_ascii(void)
 		dat[45]=0x0d;               //回车
 		dat[46]=0x0a;             //换行
 		
-		__set_FAULTMASK(1);//关闭全部中断
+//		__set_FAULTMASK(1);//关闭全部中断
 		WriteToSD_Env(dat,16);
-		__set_FAULTMASK(0);//打开全部中断
+//		__set_FAULTMASK(0);//打开全部中断
 		
 		printf("write env data\n");
 		time_flag=1;

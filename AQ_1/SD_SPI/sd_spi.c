@@ -497,7 +497,7 @@ int8_t WriteToSD_Env(const void *buffer, UINT cnt)            //µ¥¶ÀÂÖ³­»·¾³±í
     int8_t Rxbuf[20];
     
 	rtc_get();
-	
+	__set_FAULTMASK(1);
 	sprintf(folder,"0:\\%0.4d-%0.2d",timer.w_year,timer.w_month);  //»ñÈ¡ÎÄ¼ş¼ĞÂ·¾¶
     printf("folder %s\n", folder);
     
@@ -548,6 +548,7 @@ int8_t WriteToSD_Env(const void *buffer, UINT cnt)            //µ¥¶ÀÂÖ³­»·¾³±í
         }
         
 		f_close(&parafile);
+		__set_FAULTMASK(0);
 	}
 	
 }
@@ -566,7 +567,7 @@ int8_t ReadFromSD_Env(char *buffer1, UINT cnt)            //¶ÁSD¿¨Êı¾İ
 	uint32_t offset = 0;     //Æ«ÒÆµØÖ·
 
 	int8_t Rxbuf[20];
-
+	__set_FAULTMASK(1);
 //	sprintf(folder,"0:\\%0.4d-%0.2d",timer.w_year,timer.w_month);  //»ñÈ¡ÎÄ¼ş¼ĞÂ·¾¶
 	f_mkdir((const char*)folder);
 	res=f_opendir(&dp,(const char*)folder);
@@ -579,6 +580,7 @@ int8_t ReadFromSD_Env(char *buffer1, UINT cnt)            //¶ÁSD¿¨Êı¾İ
 		f_read (&parafile, buffer1, 44, &br);  ////ĞÎ²ÎµÄÊı×éÎªĞ´ÈëµÄÄÚÈİÖ¸Õë		
 		f_close(&parafile);
 	}
+	__set_FAULTMASK(0);
 }
 
 
@@ -598,7 +600,7 @@ int8_t WriteToSD_password(const void *buffer2, UINT cnt)            //Ğ´SD¿¨ÃÜÂë
 
 //	rtc_get();
 
-
+	__set_FAULTMASK(1);
 	f_mkdir((const char*)folder);                  //½¨Á¢ÎÄ¼ş¸ùÄ¿Â¼
 
 	res=f_opendir(&dp,(const char*)folder);         //´ò¿ªÎÄ¼ş¸ùÄ¿Â¼
@@ -625,6 +627,7 @@ int8_t WriteToSD_password(const void *buffer2, UINT cnt)            //Ğ´SD¿¨ÃÜÂë
 
 		f_close(&parafile);
     }
+	__set_FAULTMASK(0);
 }
 
 
@@ -642,7 +645,7 @@ int8_t ReadFromSD_password(char *buffer3, UINT cnt)            //¶ÁSD¿¨ÃÜÂëÊı¾İ
 	uint32_t offset = 0;     //Æ«ÒÆµØÖ·
 
 //  int8_t Rxbuf[20];
-
+	__set_FAULTMASK(1);
 	f_mkdir((const char*)folder);                    //½¨Á¢ÎÄ¼ş¸ùÄ¿Â¼
 
 	res=f_opendir(&dp,(const char*)folder);          //´ò¿ªÎÄ¼ş¸ùÄ¿Â¼
@@ -656,6 +659,7 @@ int8_t ReadFromSD_password(char *buffer3, UINT cnt)            //¶ÁSD¿¨ÃÜÂëÊı¾İ
 
 		f_close(&parafile);
 	}
+	__set_FAULTMASK(0);
 
 }
 
@@ -676,7 +680,7 @@ int8_t WriteToSD_address(const void *buffer4, UINT cnt)            //Ğ´SD¿¨µØÖ·Ê
 
 //	rtc_get();
 
-
+	__set_FAULTMASK(1);
 	f_mkdir((const char*)folder);                        //½¨Á¢ÎÄ¼ş¸ùÄ¿Â¼
 
 	res=f_opendir(&dp,(const char*)folder);              //´ò¿ªÎÄ¼ş¸ùÄ¿Â¼
@@ -696,7 +700,7 @@ int8_t WriteToSD_address(const void *buffer4, UINT cnt)            //Ğ´SD¿¨µØÖ·Ê
     else
         printf("no this file name");
 	 
-	
+	__set_FAULTMASK(0);
 }
 
 
@@ -715,7 +719,7 @@ int8_t ReadFromSD_address(char *buffer5, UINT cnt)            //¶ÁSD¿¨µØÖ·Êı¾İ
 	uint32_t offset = 0;     //Æ«ÒÆµØÖ·
 
 //  int8_t Rxbuf[20];
-
+	__set_FAULTMASK(1);
 	f_mkdir((const char*)folder);                           //½¨Á¢ÎÄ¼ş¸ùÄ¿Â¼
 
 	res=f_opendir(&dp,(const char*)folder);                  //´ò¿ªÎÄ¼ş¸ùÄ¿Â¼
@@ -729,4 +733,5 @@ int8_t ReadFromSD_address(char *buffer5, UINT cnt)            //¶ÁSD¿¨µØÖ·Êı¾İ
 
 		f_close(&parafile);
 	}
+	__set_FAULTMASK(0);
 }
