@@ -96,7 +96,14 @@ u8 fan_en = 0;
 void fs_test(void);
 void show_main_interface(void);
 extern void GUI_DispCEOL_SS_T(void) ;
-uint8_t tempbuff[12];
+uint8_t send_temp[31] = {0x49,0x41,0x51,0x2d,0x42,0x30,0x57,0x30,0x30,0x30,
+						 0x49,0x41,0x51,0x2d,0x42,0x30,0x57,0x30,0x30,0x30,
+						 0x53,0x53,0x32,0x30,0x32,0x30,0x30,0x30,0x34,0x31,
+						 0x31};
+uint8_t recv_temp[62];
+uint8_t id_temp[21];
+int num_temp;
+int i_temp;
 int main(void)
 {	
     SystemInit();                              //≥ı ºªØSTM32
@@ -154,8 +161,40 @@ int main(void)
     else
         GPIO_ResetBits(GPIOG,GPIO_Pin_13);
 	
+//	printf("send_temp = ");
+//	for(i_temp = 0;i_temp < sizeof(send_temp);i_temp ++)
+//		printf("0x%x ",send_temp[i_temp]);
+//	printf("\n");
+//	
+//	WirteFlashData(0,send_temp,sizeof(send_temp));
+//	num_temp = ReadFlashNBtye(0,recv_temp,sizeof(recv_temp));
+//	
+//	printf("num_temp = %d\r\n",num_temp);
+//	printf("recv_temp = ");
+//	for(i_temp = 0;i_temp < sizeof(recv_temp);i_temp ++)
+//	{
+//		recv_temp[i_temp] = recv_temp[i_temp*2];
+//	}
+//	for(i_temp = 0;i_temp < sizeof(recv_temp)/2;i_temp ++)
+//		printf("0x%x ",recv_temp[i_temp]);
+//	printf("\n");
+//	
+//	for(i_temp = 0;i_temp < 21;i_temp ++)
+//	{
+//		id_temp[i_temp] = recv_temp[i_temp+10];
+//	}
+//	printf("id_temp = ");
+//	for(i_temp = 0;i_temp < 21;i_temp ++)
+//		printf("0x%x ",id_temp[i_temp]);
+//	printf("\n");
     while(1)
-    {
+    {//end page addr start 0x0807 F800
+		/*
+			0x0807 E000 - 0x0807 E7FF
+			0x0807 E800 - 0x0807 EFFF
+			0x0807 F000 - 0x0807 F7FF
+			0x0807 F800 - 0x0807 FFFF
+		*/
 		if(g_nDataProComFlag == 1)
 		{
 			Host_Code();

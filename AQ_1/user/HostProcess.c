@@ -5,6 +5,8 @@
 #include "bsp_iaq.h"
 #include "usart1.h"
 
+volatile FLASH_Status FLASHStatus = FLASH_BUSY;
+
 uint8_t g_nDataLen = 0;//接收到的数据长度version + func + data
 int g_nDataProComFlag = 0;//处理完一帧数据标志位 data process complete flag
 int g_cFuncCode = 0;//存储接收数据中的func位
@@ -29,6 +31,11 @@ uint16_t g_iHCHO = 0;//甲烷
 uint16_t g_iVOC = 0;//VOC
 uint8_t g_cSenseBuff[14] = {0x01,0x48,0x01,0x63,0x01,0xf4,0x02,//传感器上传数组
 							0x2b,0x07,0xd0,0x05,0xdc,0x05,0xdc};
+/*flash buffer*/
+uint8_t g_cSendFlash_Buffer[10+21];
+uint8_t g_cRecvFlash_Buffer[20+42];
+uint8_t g_cDev_Module_Flash[20]; //从flash里读 0x0807 E000 - 0x0807 E7FF
+uint8_t g_cDev_ID_Flash[42];//从flash里读 0x0807 E800 - 0x0807 EFFF							
 /*receive from host send to host*/
 uint8_t g_cDev_Module[10];//设备号
 uint8_t g_cDev_ID[21];//序列号
@@ -37,13 +44,14 @@ uint8_t g_cDev_Area[1];//时区
 uint8_t g_cDev_Time[7];//时间
 uint8_t g_cDev_ArTi[8];//Area+Time
 uint8_t g_cDev_Carr_Addr[12];//载波地址
+uint8_t g_cDev_Carr_Addr_Flash[24];//从flash里读 0x0807 fa00 --- 0x0807 fa18
 uint8_t g_cDev_485_Addr[2];//485地址
 uint8_t g_cDev_485_Rate[4];//485波特率
 uint16_t Year = 0;
 /*static function*/
 
 static bool DataContrast(unsigned char ch,unsigned char *pbuff,int nlen);
-
+static void WirteToFlash(uint32_t WriteAddress,uint8_t data[],int Func);
 static void Download_Host(uint8_t func,
 						uint8_t version,
 						uint8_t *Dev_buff,
@@ -85,7 +93,6 @@ void Recv_Data(uint8_t ch)
 	if((s_iLenFlag == 1) && (s_ichlen > 2))
 	{
 		g_cDataBuffer[i] = ch;
-		//code
 		if(DataContrast(g_cDataBuffer[1],s_cFuncCodeBuff,sizeof(s_cFuncCodeBuff)))
 		{
 			g_cFuncCode = g_cDataBuffer[1];		
@@ -155,21 +162,39 @@ extern tm timer;
   * @retval	return:无
   */
 extern float pm2_5,CO2_ppm,Humidity,Temperature;
+int g_iFlashCount = 0;
 void Host_Code(void)
 {
 	st_iaq_core tvoc;
+	int i;
 	switch (g_cFuncCode)
 	{
 		case SET_DEVICE_MODEL:
 		{
 			Download_Host(g_cFuncCode+0x80,g_cVersion,g_cDev_Module,sizeof(g_cDev_Module));
-
+			
+			ReadFlashNBtye(0,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+			for(i = 0;i < sizeof(g_cSendFlash_Buffer);i ++)
+			{
+				g_cSendFlash_Buffer[i] = g_cRecvFlash_Buffer[i*2];
+			}
+			
+			for(i = 0;i < sizeof(g_cDev_Module);i ++)
+				g_cSendFlash_Buffer[i] = g_cDev_Module[i];
+			
+			WirteFlashData(0,g_cSendFlash_Buffer,sizeof(g_cSendFlash_Buffer));
 			InitRecvState();
 			
 			break;
 		}
 		case READ_DEVICE_MODEL:
 		{
+			ReadFlashNBtye(0,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+			for(i = 0;i < sizeof(g_cDev_Module);i ++)
+			{
+				g_cDev_Module[i] = g_cRecvFlash_Buffer[i*2];
+			}
+			
 			Updata_Host(g_cFuncCode+0x80,
 						g_cVersion,
 						0x0f,
@@ -181,12 +206,27 @@ void Host_Code(void)
 		case SET_DEVICE_ID:
 		{
 			Download_Host(g_cFuncCode+0x80,g_cVersion,g_cDev_ID,sizeof(g_cDev_ID));
-
+			ReadFlashNBtye(0,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+			for(i = 0;i < sizeof(g_cSendFlash_Buffer);i ++)
+			{
+				g_cSendFlash_Buffer[i] = g_cRecvFlash_Buffer[i*2];
+			}
+			for(i = 0;i < sizeof(g_cDev_ID);i ++)
+				g_cSendFlash_Buffer[i+10] = g_cDev_ID[i];
+			
+			WirteFlashData(0,g_cSendFlash_Buffer,sizeof(g_cSendFlash_Buffer));
+			
 			InitRecvState();
 			break;
 		}
 		case READ_DEVICE_ID:
 		{
+			ReadFlashNBtye(0,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+			for(i = 0;i < sizeof(g_cDev_ID);i ++)
+			{
+				g_cDev_ID[i] = g_cRecvFlash_Buffer[20 + i*2];
+			}
+			
 			Updata_Host(g_cFuncCode+0x80,g_cVersion,0x1a,g_cDev_ID,sizeof(g_cDev_ID));	
 			InitRecvState();
 			break;
@@ -400,3 +440,110 @@ static void Updata_Host(uint8_t func,
 	USART_SendData(DEF_HOST_USART,0x44);
 	delay_ms(10);
 }
+
+void WirteFlashData(uint32_t WriteAddress,uint8_t data[],int num)
+{
+	int i = 0;;
+	uint16_t temp = 0;
+	FLASH_UnlockBank1(); //解锁flash
+	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR); 
+	
+	FLASHStatus = 1;//清空状态标志位
+	FLASHStatus = FLASH_ErasePage(STARTADDR + WriteAddress);//擦除整页
+	if(FLASHStatus == FLASH_COMPLETE)
+	{
+		FLASHStatus = 1;
+		for(i = 0;i < num;i ++)
+		{
+			temp = (uint16_t)data[i];
+			FLASHStatus = FLASH_ProgramHalfWord(STARTADDR+WriteAddress+i*2, temp);
+		}
+		
+	}
+	FLASHStatus = 1;
+	FLASH_LockBank1();
+}
+
+int ReadFlashNBtye(uint32_t ReadAddress, uint8_t *ReadBuf, int32_t ReadNum)
+{
+    int DataNum = 0;
+    
+    ReadAddress = (uint32_t)STARTADDR + ReadAddress; 
+//	printf("ReadAddress1 = %x\n",ReadAddress);
+    while(DataNum < ReadNum)   
+    {        
+        *(ReadBuf + DataNum) = *(__IO uint8_t*) ReadAddress++; 		
+        DataNum++;     
+    }
+//	printf("ReadAddress2 = %x\n",ReadAddress);
+    return DataNum;    
+}
+
+static void WirteToFlash(uint32_t WriteAddress,uint8_t data[],int Func)
+{
+	int i;
+	switch (Func)
+	{
+		case SET_DEVICE_MODEL:
+		{
+			ReadFlashNBtye(WriteAddress,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+			for(i = 0;i < (sizeof(g_cDev_Module)*2); i ++)
+			{
+				printf("buffer1 = %x \r\n",g_cSendFlash_Buffer[i]);
+				g_cSendFlash_Buffer[i] = g_cRecvFlash_Buffer[i*2];
+				if(i < sizeof(g_cDev_Module))
+					g_cSendFlash_Buffer[i] = g_cDev_Module[i];
+				printf("buffer2 = %x \r\n",g_cSendFlash_Buffer[i]);
+			}
+			WirteFlashData(WriteAddress,g_cSendFlash_Buffer,sizeof(g_cSendFlash_Buffer));	
+			break;
+		}
+		case READ_DEVICE_MODEL:
+		{
+			ReadFlashNBtye(WriteAddress,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+			for(i = 0;i < (sizeof(g_cDev_ID)*2 + 0); i ++)
+			{
+				g_cSendFlash_Buffer[i] = g_cRecvFlash_Buffer[i*2];
+				printf("buffer1 = %x ",g_cSendFlash_Buffer[i]);
+				if(i < sizeof(g_cDev_ID))
+					g_cSendFlash_Buffer[i] = g_cDev_ID[i];
+				printf("buffer2 = %x ",g_cSendFlash_Buffer[i]);
+			}
+			WirteFlashData(WriteAddress,g_cSendFlash_Buffer,sizeof(g_cSendFlash_Buffer));
+			break;
+		}
+	}
+}
+
+//static void ReadFromFlash(uint32_t WriteAddress,uint8_t *ReadBuf,int Func)
+//{
+//	int i;
+//	switch (Func)
+//	{
+//		case SET_DEVICE_MODEL:
+//		{
+//			ReadFlashNBtye(WriteAddress,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+//			for(i = 0;i < (sizeof(data)*2); i ++)
+//			{
+//				printf("buffer1 = %x ",g_cSendFlash_Buffer[i]);
+//				ReadBuf[i] = g_cRecvFlash_Buffer[i*2];
+//				printf("buffer2 = %x ",ReadBuf[i]);
+//			}	
+//			break;
+//		}
+//		case READ_DEVICE_MODEL:
+//		{
+//			ReadFlashNBtye(WriteAddress,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+//			for(i = 20;i < (sizeof(data)*2 + 20); i ++)
+//			{
+//				g_cSendFlash_Buffer[i] = g_cRecvFlash_Buffer[i*2];
+//				printf("buffer1 = %x ",g_cSendFlash_Buffer[i]);
+//				if(i < sizeof(g_cDev_ID))
+//					g_cSendFlash_Buffer[i] = g_cDev_ID[i];
+//				printf("buffer2 = %x ",g_cSendFlash_Buffer[i]);
+//			}
+//			WirteFlashData(WriteAddress,g_cSendFlash_Buffer,sizeof(g_cSendFlash_Buffer));
+//			break;
+//		}
+//	}
+//}

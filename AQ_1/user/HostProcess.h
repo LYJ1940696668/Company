@@ -1,11 +1,23 @@
 #ifndef __HOST_H
 #define __HOST_H
 
+#include "stm32f10x.h"
+#include "stm32f10x_flash.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 
 #define DEF_HOST_USART UART5
+//0x0805 9f64
+/*
+	0x0807 E000 - 0x0807 E7FF
+	0x0807 E800 - 0x0807 EFFF
+	0x0807 F000 - 0x0807 F7FF
+	0x0807 F800 - 0x0807 FFFF
+*/
+#define STARTADDR 		0x0807E000
+#define MODULE_FLASH 	0//Éè±¸ºÅÆ«ÒÆµØÖ·
+#define ID_FLASH		(MODULE_FLASH + 0x0800)//IDÆ«ÒÆµØÖ·
 
 enum FunctionCode
 {
@@ -30,4 +42,6 @@ extern int g_nDataProComFlag;
 extern uint8_t g_cDev_ArTi[8];
 void Recv_Data(uint8_t ch);
 void Host_Code(void);
+int ReadFlashNBtye(uint32_t ReadAddress, uint8_t *ReadBuf, int32_t ReadNum);
+void WirteFlashData(uint32_t WriteAddress,uint8_t data[],int num);
 #endif
