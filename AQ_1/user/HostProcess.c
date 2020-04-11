@@ -190,18 +190,10 @@ void Host_Code(void)
 		case READ_DEVICE_MODEL:
 		{
 			ReadFlashNBtye(0,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
-//			printf("g_cRecvFlash_Buffer = ");
-//			for(i = 0;i < sizeof(g_cRecvFlash_Buffer);i ++)
-//				printf("0x%x ",g_cRecvFlash_Buffer[i]);
-//			printf("\n");
 			for(i = 0;i < sizeof(g_cDev_Module);i ++)
 			{
 				g_cDev_Module[i] = g_cRecvFlash_Buffer[i*2];
 			}
-//			printf("g_cDev_Module = ");
-//			for(i = 0;i < sizeof(g_cDev_Module);i ++)
-//				printf("0x%x ",g_cDev_Module[i]);
-//			printf("\n");
 			
 			Updata_Host(g_cFuncCode+0x80,
 						g_cVersion,
@@ -230,19 +222,10 @@ void Host_Code(void)
 		case READ_DEVICE_ID:
 		{
 			ReadFlashNBtye(0,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
-			
-//			printf("g_cRecvFlash_Buffer1 = ");
-//			for(i = 0;i < sizeof(g_cRecvFlash_Buffer);i ++)
-//				printf("0x%x ",g_cRecvFlash_Buffer[i]);
-//			printf("\n");
 			for(i = 0;i < sizeof(g_cDev_ID);i ++)
 			{
 				g_cDev_ID[i] = g_cRecvFlash_Buffer[20 + i*2];
 			}
-//			printf("g_cDev_Module = ");
-//			for(i = 0;i < sizeof(g_cDev_ID);i ++)
-//				printf("0x%x ",g_cDev_ID[i]);
-//			printf("\n");
 			
 			Updata_Host(g_cFuncCode+0x80,g_cVersion,0x1a,g_cDev_ID,sizeof(g_cDev_ID));	
 			InitRecvState();
