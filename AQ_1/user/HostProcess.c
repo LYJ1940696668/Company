@@ -5,6 +5,8 @@
 #include "bsp_iaq.h"
 #include "usart1.h"
 
+volatile FLASH_Status FLASHStatus = FLASH_BUSY;
+
 uint8_t g_nDataLen = 0;//接收到的数据长度version + func + data
 int g_nDataProComFlag = 0;//处理完一帧数据标志位 data process complete flag
 int g_cFuncCode = 0;//存储接收数据中的func位
@@ -31,12 +33,15 @@ uint8_t g_cSenseBuff[14] = {0x01,0x48,0x01,0x63,0x01,0xf4,0x02,//传感器上传数组
 							0x2b,0x07,0xd0,0x05,0xdc,0x05,0xdc};
 /*receive from host send to host*/
 uint8_t g_cDev_Module[10];//设备号
+uint8_t g_cDev_Module_Flash[20]; //从flash里读 0x0807 f800 --- 0x0807 f814
 uint8_t g_cDev_ID[21];//序列号
+uint8_t g_cDev_ID_Flash[42];//从flash里读 0x0807 f830 --- 0x0807 f85a
 uint8_t g_cDev_Func[2];//设备功能
 uint8_t g_cDev_Area[1];//时区
 uint8_t g_cDev_Time[7];//时间
 uint8_t g_cDev_ArTi[8];//Area+Time
 uint8_t g_cDev_Carr_Addr[12];//载波地址
+uint8_t g_cDev_Carr_Addr_Flash[24];//从flash里读 0x0807 fa00 --- 0x0807 fa18
 uint8_t g_cDev_485_Addr[2];//485地址
 uint8_t g_cDev_485_Rate[4];//485波特率
 uint16_t Year = 0;
@@ -155,25 +160,35 @@ extern tm timer;
   * @retval	return:无
   */
 extern float pm2_5,CO2_ppm,Humidity,Temperature;
+int g_iFlashCount = 0;
 void Host_Code(void)
 {
 	st_iaq_core tvoc;
+	int i;
 	switch (g_cFuncCode)
 	{
 		case SET_DEVICE_MODEL:
 		{
 			Download_Host(g_cFuncCode+0x80,g_cVersion,g_cDev_Module,sizeof(g_cDev_Module));
-
+			WirteFlashData(0,g_cDev_Module,sizeof(g_cDev_Module));
 			InitRecvState();
 			
 			break;
 		}
 		case READ_DEVICE_MODEL:
 		{
+			g_iFlashCount = ReadFlashNBtye(0,g_cDev_Module_Flash,
+									sizeof(g_cDev_Module_Flash));
+			for(i = 0;i < g_iFlashCount;i ++)
+			{
+				g_cDev_Module_Flash[i] = g_cDev_Module_Flash[i*2];
+			}
+//			memset(g_cDev_Module_Flash,0,sizeof(g_cDev_Module_Flash));
+			
 			Updata_Host(g_cFuncCode+0x80,
 						g_cVersion,
 						0x0f,
-						g_cDev_Module,
+						g_cDev_Module_Flash,
 						sizeof(g_cDev_Module));			
 
 			break;
@@ -181,13 +196,23 @@ void Host_Code(void)
 		case SET_DEVICE_ID:
 		{
 			Download_Host(g_cFuncCode+0x80,g_cVersion,g_cDev_ID,sizeof(g_cDev_ID));
-
+			
+			WirteFlashData(0x30,g_cDev_ID,sizeof(g_cDev_ID));
+			
 			InitRecvState();
 			break;
 		}
 		case READ_DEVICE_ID:
 		{
-			Updata_Host(g_cFuncCode+0x80,g_cVersion,0x1a,g_cDev_ID,sizeof(g_cDev_ID));	
+			g_iFlashCount = ReadFlashNBtye(0x30,g_cDev_ID_Flash,
+									sizeof(g_cDev_ID_Flash));
+			for(i = 0;i < g_iFlashCount;i ++)
+			{
+				g_cDev_ID_Flash[i] = g_cDev_ID_Flash[i*2];
+			}
+//			memset(g_cDev_ID_Flash,0,sizeof(g_cDev_ID_Flash));
+			
+			Updata_Host(g_cFuncCode+0x80,g_cVersion,0x1a,g_cDev_ID_Flash,sizeof(g_cDev_ID));	
 			InitRecvState();
 			break;
 		}
@@ -400,3 +425,40 @@ static void Updata_Host(uint8_t func,
 	USART_SendData(DEF_HOST_USART,0x44);
 	delay_ms(10);
 }
+
+void WirteFlashData(uint32_t WriteAddress,uint8_t data[],int num)
+{
+	int i = 0;;
+	uint16_t temp = 0;
+	FLASH_UnlockBank1(); //解锁flash
+	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR); 
+	
+	FLASHStatus = 1;//清空状态标志位
+	FLASHStatus = FLASH_ErasePage(STARTADDR);//擦除整页
+	if(FLASHStatus == FLASH_COMPLETE)
+	{
+		FLASHStatus = 1;
+		for(i = 0;i < num;i ++)
+		{
+			temp = (uint16_t)data[i];
+			FLASHStatus = FLASH_ProgramHalfWord(STARTADDR+WriteAddress+i*2, temp);
+		}
+		
+	}
+	FLASHStatus = 1;
+	FLASH_LockBank1();
+}
+
+int ReadFlashNBtye(uint32_t ReadAddress, uint8_t *ReadBuf, int32_t ReadNum)
+{
+    int DataNum = 0;
+    
+    ReadAddress = (uint32_t)STARTADDR + ReadAddress; 
+    while(DataNum < ReadNum)   
+    {        
+        *(ReadBuf + DataNum) = *(__IO uint8_t*) ReadAddress++; 		
+        DataNum++;     
+    }
+    return DataNum;    
+}
+

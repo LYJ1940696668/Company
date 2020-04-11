@@ -49,11 +49,11 @@
 
 typedef enum
 { 
-  FLASH_BUSY = 1,
-  FLASH_ERROR_PG,
-  FLASH_ERROR_WRP,
-  FLASH_COMPLETE,
-  FLASH_TIMEOUT
+  FLASH_BUSY = 1, //忙
+  FLASH_ERROR_PG, //编程错误
+  FLASH_ERROR_WRP,//写保护错误
+  FLASH_COMPLETE, //操作完成
+  FLASH_TIMEOUT   //操作超时
 }FLASH_Status;
 
 /**
