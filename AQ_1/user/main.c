@@ -96,8 +96,8 @@ u8 fan_en = 0;
 void fs_test(void);
 void show_main_interface(void);
 extern void GUI_DispCEOL_SS_T(void) ;
-uint8_t send_temp[7] = {0x02,0x06,0x02,0x01,0x04,0x07,0x05};
-uint8_t recv_temp[14];
+uint8_t send_temp[10] = {2,2,2,2,2,2,2,2,2,2};
+uint8_t recv_temp[20];
 int num_temp;
 int i_temp;
 int main(void)
@@ -162,8 +162,8 @@ int main(void)
 //		printf("%d ",send_temp[i_temp]);
 //	printf("\n");
 //	
-//	WirteFlashData(0x30,send_temp,sizeof(send_temp));
-//	num_temp = ReadFlashNBtye(0x30,recv_temp,sizeof(recv_temp));
+//	WirteFlashData(0,send_temp,sizeof(send_temp));
+//	num_temp = ReadFlashNBtye(0,recv_temp,sizeof(recv_temp));
 //	
 //	printf("num_temp = %d\r\n",num_temp);
 //	printf("recv_temp = ");
@@ -175,11 +175,8 @@ int main(void)
 //		printf("%d ",recv_temp[i_temp]);
 //	printf("\n");
     while(1)
-    {
-		//STM32ZET6
-		//0x0800 0000
-		//0x0807 FFFF
-		//FLASH 512
+    {//end page addr start 0x0807 F800
+		
 		if(g_nDataProComFlag == 1)
 		{
 			Host_Code();

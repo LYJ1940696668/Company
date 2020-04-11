@@ -9,7 +9,17 @@
 
 #define DEF_HOST_USART UART5
 //0x0805 9f64
-#define STARTADDR 0x0807f800
+/*
+	0x0807 E000 - 0x0807 E7FF
+	0x0807 E800 - 0x0807 EFFF
+	0x0807 F000 - 0x0807 F7FF
+	0x0807 F800 - 0x0807 FFFF
+*/
+#define STARTADDR 		0x0807E000
+#define MODULE_FLASH 	0//设备号偏移地址
+#define ID_FLASH		(MODULE_FLASH + 0x0800)//ID偏移地址
+
+
 enum FunctionCode
 {
 	SET_DEVICE_MODEL = 0x01,//设置设备号

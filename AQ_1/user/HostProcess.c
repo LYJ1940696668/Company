@@ -33,9 +33,9 @@ uint8_t g_cSenseBuff[14] = {0x01,0x48,0x01,0x63,0x01,0xf4,0x02,//传感器上传数组
 							0x2b,0x07,0xd0,0x05,0xdc,0x05,0xdc};
 /*receive from host send to host*/
 uint8_t g_cDev_Module[10];//设备号
-uint8_t g_cDev_Module_Flash[20]; //从flash里读 0x0807 f800 --- 0x0807 f814
+uint8_t g_cDev_Module_Flash[20]; //从flash里读 0x0807 E000 - 0x0807 E7FF
 uint8_t g_cDev_ID[21];//序列号
-uint8_t g_cDev_ID_Flash[42];//从flash里读 0x0807 f830 --- 0x0807 f85a
+uint8_t g_cDev_ID_Flash[42];//从flash里读 0x0807 E800 - 0x0807 EFFF
 uint8_t g_cDev_Func[2];//设备功能
 uint8_t g_cDev_Area[1];//时区
 uint8_t g_cDev_Time[7];//时间
@@ -90,7 +90,6 @@ void Recv_Data(uint8_t ch)
 	if((s_iLenFlag == 1) && (s_ichlen > 2))
 	{
 		g_cDataBuffer[i] = ch;
-		//code
 		if(DataContrast(g_cDataBuffer[1],s_cFuncCodeBuff,sizeof(s_cFuncCodeBuff)))
 		{
 			g_cFuncCode = g_cDataBuffer[1];		
@@ -170,14 +169,14 @@ void Host_Code(void)
 		case SET_DEVICE_MODEL:
 		{
 			Download_Host(g_cFuncCode+0x80,g_cVersion,g_cDev_Module,sizeof(g_cDev_Module));
-			WirteFlashData(0,g_cDev_Module,sizeof(g_cDev_Module));
+			WirteFlashData(MODULE_FLASH,g_cDev_Module,sizeof(g_cDev_Module));
 			InitRecvState();
 			
 			break;
 		}
 		case READ_DEVICE_MODEL:
 		{
-			g_iFlashCount = ReadFlashNBtye(0,g_cDev_Module_Flash,
+			g_iFlashCount = ReadFlashNBtye(MODULE_FLASH,g_cDev_Module_Flash,
 									sizeof(g_cDev_Module_Flash));
 			for(i = 0;i < g_iFlashCount;i ++)
 			{
@@ -197,14 +196,14 @@ void Host_Code(void)
 		{
 			Download_Host(g_cFuncCode+0x80,g_cVersion,g_cDev_ID,sizeof(g_cDev_ID));
 			
-			WirteFlashData(0x30,g_cDev_ID,sizeof(g_cDev_ID));
+			WirteFlashData(ID_FLASH,g_cDev_ID,sizeof(g_cDev_ID));
 			
 			InitRecvState();
 			break;
 		}
 		case READ_DEVICE_ID:
 		{
-			g_iFlashCount = ReadFlashNBtye(0x30,g_cDev_ID_Flash,
+			g_iFlashCount = ReadFlashNBtye(ID_FLASH,g_cDev_ID_Flash,
 									sizeof(g_cDev_ID_Flash));
 			for(i = 0;i < g_iFlashCount;i ++)
 			{
@@ -434,7 +433,7 @@ void WirteFlashData(uint32_t WriteAddress,uint8_t data[],int num)
 	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR); 
 	
 	FLASHStatus = 1;//清空状态标志位
-	FLASHStatus = FLASH_ErasePage(STARTADDR);//擦除整页
+	FLASHStatus = FLASH_ErasePage(STARTADDR + WriteAddress);//擦除整页
 	if(FLASHStatus == FLASH_COMPLETE)
 	{
 		FLASHStatus = 1;
@@ -454,11 +453,13 @@ int ReadFlashNBtye(uint32_t ReadAddress, uint8_t *ReadBuf, int32_t ReadNum)
     int DataNum = 0;
     
     ReadAddress = (uint32_t)STARTADDR + ReadAddress; 
+	printf("ReadAddress1 = %x\n",ReadAddress);
     while(DataNum < ReadNum)   
     {        
         *(ReadBuf + DataNum) = *(__IO uint8_t*) ReadAddress++; 		
         DataNum++;     
     }
+	printf("ReadAddress2 = %x\n",ReadAddress);
     return DataNum;    
 }
 
