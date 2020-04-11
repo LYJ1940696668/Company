@@ -160,41 +160,8 @@ int main(void)
         GPIO_SetBits(GPIOG,GPIO_Pin_13);
     else
         GPIO_ResetBits(GPIOG,GPIO_Pin_13);
-	
-//	printf("send_temp = ");
-//	for(i_temp = 0;i_temp < sizeof(send_temp);i_temp ++)
-//		printf("0x%x ",send_temp[i_temp]);
-//	printf("\n");
-//	
-//	WirteFlashData(0,send_temp,sizeof(send_temp));
-//	num_temp = ReadFlashNBtye(0,recv_temp,sizeof(recv_temp));
-//	
-//	printf("num_temp = %d\r\n",num_temp);
-//	printf("recv_temp = ");
-//	for(i_temp = 0;i_temp < sizeof(recv_temp);i_temp ++)
-//	{
-//		recv_temp[i_temp] = recv_temp[i_temp*2];
-//	}
-//	for(i_temp = 0;i_temp < sizeof(recv_temp)/2;i_temp ++)
-//		printf("0x%x ",recv_temp[i_temp]);
-//	printf("\n");
-//	
-//	for(i_temp = 0;i_temp < 21;i_temp ++)
-//	{
-//		id_temp[i_temp] = recv_temp[i_temp+10];
-//	}
-//	printf("id_temp = ");
-//	for(i_temp = 0;i_temp < 21;i_temp ++)
-//		printf("0x%x ",id_temp[i_temp]);
-//	printf("\n");
     while(1)
-    {//end page addr start 0x0807 F800
-		/*
-			0x0807 E000 - 0x0807 E7FF
-			0x0807 E800 - 0x0807 EFFF
-			0x0807 F000 - 0x0807 F7FF
-			0x0807 F800 - 0x0807 FFFF
-		*/
+    {
 		if(g_nDataProComFlag == 1)
 		{
 			Host_Code();

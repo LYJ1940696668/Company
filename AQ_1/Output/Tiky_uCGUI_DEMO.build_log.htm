@@ -27,6 +27,70 @@ Project File Date:  04/11/2020
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'd:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'uCGUI'
+compiling RTC.c...
+user\RTC.h(41): warning:  #1-D: last line of file ends without a newline
+  #endif 
+user\RTC.c(333): warning:  #177-D: variable "hz_xq_pos_x" was declared but never referenced
+      int hz_xq_pos_x = hz_pos_x + 64 * 4;
+user\RTC.c(304): warning:  #177-D: variable "s_cPlaying_Time" was declared but never referenced
+  static uint8_t s_cPlaying_Time[8];//???ڴ�???Ļ??????ʾʱ??
+user\RTC.c: 3 warnings, 0 errors
+compiling display.c...
+user\RTC.h(41): warning:  #1-D: last line of file ends without a newline
+  #endif 
+user\usart2.h(51): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\Protol_3762.h(62): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\turn_ASCII.h(14): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\turn_ASCII.h(14): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\display.c(65): warning:  #177-D: variable "tttttt_sum" was declared but never referenced
+  	static  float tttttt_sum    = 1001;
+user\display.c: 6 warnings, 0 errors
+compiling main.c...
+user\RTC.h(41): warning:  #1-D: last line of file ends without a newline
+  #endif 
+user\usart2.h(51): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\Protol_3762.h(62): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\led.h(35): warning:  #1-D: last line of file ends without a newline
+  #endif	
+user\led.h(35): warning:  #1-D: last line of file ends without a newline
+  #endif	
+user\turn_ASCII.h(14): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\turn_ASCII.h(14): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\hcho.h(37): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\main.c(189): warning:  #128-D: loop is not reachable
+  	while(1)
+user\main.c(239): warning:  #177-D: variable "work" was declared but never referenced
+      BYTE work[FF_MAX_SS]; /* Work area (larger is better for processing time) */
+user\main.c(241): warning:  #177-D: variable "i" was declared but never referenced
+      UINT i;
+user\main.c(242): warning:  #177-D: variable "ii" was declared but never referenced
+      UINT* ii;
+user\main.c(244): warning:  #550-D: variable "res" was set but never used
+      int res;
+user\main.c(352): warning:  #177-D: variable "i" was declared but never referenced
+          int i; 
+user\main.c: 14 warnings, 0 errors
+compiling comm.c...
+user\comm.c(64): warning:  #550-D: variable "len" was set but never used
+      u8 len, i;
+user\comm.c(64): warning:  #177-D: variable "i" was declared but never referenced
+      u8 len, i;
+user\comm.c(80): warning:  #177-D: variable "i" was declared but never referenced
+  	int i;
+user\comm.c(81): warning:  #177-D: variable "sum_pm" was declared but never referenced
+  	u16 sum_pm=0;
+user\comm.c(101): warning:  #1-D: last line of file ends without a newline
+  }
+user\comm.c: 5 warnings, 0 errors
 compiling HostProcess.c...
 user\HostProcess.c(315): warning:  #223-D: function "WriteToSD_address" declared implicitly
   			WriteToSD_address(g_cDev_Carr_Addr,16);
@@ -45,17 +109,28 @@ user\HostProcess.c(549): warning:  #1-D: last line of file ends without a newlin
 user\HostProcess.c(482): warning:  #177-D: function "WirteToFlash" was declared but never referenced
   static void WirteToFlash(uint32_t WriteAddress,uint8_t data[],int Func)
 user\HostProcess.c: 8 warnings, 0 errors
+compiling turn_ASCII.c...
+user\turn_ASCII.h(14): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\turn_ASCII.h(14): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\usart2.h(51): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\turn_ASCII.c(515): warning:  #1-D: last line of file ends without a newline
+  }
+user\turn_ASCII.c: 4 warnings, 0 errors
+compiling stm32f10x_flash.c...
 linking...
-Program Size: Code=58404 RO-data=308776 RW-data=2284 ZI-data=1093956  
+Program Size: Code=58064 RO-data=308780 RW-data=2284 ZI-data=1093956  
 FromELF: creating hex file...
-".\Output\Tiky_uCGUI_DEMO.axf" - 0 Error(s), 8 Warning(s).
+".\Output\Tiky_uCGUI_DEMO.axf" - 0 Error(s), 40 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   F:\Git\Company\AQ_1\RTE
   d:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.1.0\Device\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:09
+Build Time Elapsed:  00:00:12
 </pre>
 </body>
 </html>

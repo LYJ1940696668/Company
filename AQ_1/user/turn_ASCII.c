@@ -134,69 +134,7 @@ void turn_ascii(void)
 {
 	Send_date();
 	rtc_get();
-	if(onlyone == 1)
-	{
-		dat[0]=(timer.hour / 10) + 0x30;
-		dat[1]=(timer.hour % 10) + 0x30;	
-		dat[2]=0x3A;                //冒号
-		dat[3]=(timer.min / 10) + 0x30;
-		dat[4]=(timer.min % 10) + 0x30;	              //0分
-		dat[5]=0x3A;                //冒号
-		dat[6]=(timer.sec / 10) + 0x30;
-		dat[7]=(timer.sec % 10) + 0x30;	
-		
-		dat[8]=0x20;
-		dat[9]=0x20;                   //空格
-
-		dat[10]=0x43;
-		dat[11]=0x4f;
-		dat[12]=0x32;                //CO2
-		dat[13]=0x3A;               //冒号
-		dat[14]='T';
-		dat[15]='E';
-		dat[16]='S';
-		dat[17]='T';            //CO2数值
-		dat[18]=0x20;
-		dat[19]=0x20;                   //空格
-
-		dat[20]=0x50;
-		dat[21]=0x4d;
-		dat[22]=0x32;
-		dat[23]=0x2e;
-		dat[24]=0x35;               //pm2.5
-		dat[25]=0x3A;               //冒号
-		dat[26]='T';
-		dat[27]='T';
-		dat[28]='T';            //pm数值
-		dat[29]=0x20;
-		dat[30]=0x20;                   //空格
-
-		dat[31]=0x54;               //T
-		dat[32]=0x3a;               //冒号
-		dat[33]='T';
-		dat[34]='E';
-		dat[35]='S';
-		dat[36]='T';            //温度数值
-		dat[37]=0x20;
-		dat[38]=0x20;                   //空格
-
-		dat[39]=0x48;               //H
-		dat[40]=0x3a;               //冒号
-		dat[41]='T';
-		dat[42]='E';
-		dat[43]='S';
-		dat[44]='T';            //湿度数值
-
-		dat[45]=0x0d;               //回车
-		dat[46]=0x0a;             //换行
-		
-//		__set_FAULTMASK(1);//关闭全部中断
-		WriteToSD_Env(dat,16);
-//		__set_FAULTMASK(0);//打开全部中断
-		
-		printf("write env data\n");
-		onlyone = 0;
-	}
+	
 	if((timer.sec ==0x1e)&&(time_flag==0))             //某时0分30秒 (send_buf[0]==0)&&
 	{
 		CO2_ppm_TO_ascii();
