@@ -19,7 +19,6 @@
 #define MODULE_FLASH 	0//设备号偏移地址
 #define ID_FLASH		(MODULE_FLASH + 0x0800)//ID偏移地址
 
-
 enum FunctionCode
 {
 	SET_DEVICE_MODEL = 0x01,//设置设备号

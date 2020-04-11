@@ -22,19 +22,40 @@ Dialog DLL:      TARMSTM.DLL V1.65.0.0
  
 <h2>Project:</h2>
 F:\Git\Company\AQ_1\uCGUI_DEMO.uvprojx
-Project File Date:  04/08/2020
+Project File Date:  04/11/2020
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 2 (build 183)', folder: 'd:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'uCGUI'
-".\Output\Tiky_uCGUI_DEMO.axf" - 0 Error(s), 0 Warning(s).
+compiling HostProcess.c...
+user\HostProcess.c(332): warning:  #223-D: function "WriteToSD_address" declared implicitly
+  			WriteToSD_address(g_cDev_Carr_Addr,16);
+user\HostProcess.c(338): warning:  #223-D: function "ReadFromSD_address" declared implicitly
+  			ReadFromSD_address(g_cDev_Carr_Addr,16);
+user\HostProcess.c(168): warning:  #177-D: variable "tvoc" was declared but never referenced
+  	st_iaq_core tvoc;
+user\HostProcess.c(468): warning:  #188-D: enumerated type mixed with another type
+  	FLASHStatus = 1;//?�?״̬??־λ
+user\HostProcess.c(472): warning:  #188-D: enumerated type mixed with another type
+  		FLASHStatus = 1;
+user\HostProcess.c(480): warning:  #188-D: enumerated type mixed with another type
+  	FLASHStatus = 1;
+user\HostProcess.c(566): warning:  #1-D: last line of file ends without a newline
+  //}
+user\HostProcess.c(499): warning:  #177-D: function "WirteToFlash" was declared but never referenced
+  static void WirteToFlash(uint32_t WriteAddress,uint8_t data[],int Func)
+user\HostProcess.c: 8 warnings, 0 errors
+linking...
+Program Size: Code=58404 RO-data=308776 RW-data=2284 ZI-data=1093956  
+FromELF: creating hex file...
+".\Output\Tiky_uCGUI_DEMO.axf" - 0 Error(s), 8 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   F:\Git\Company\AQ_1\RTE
   d:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.1.0\Device\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:11
+Build Time Elapsed:  00:00:09
 </pre>
 </body>
 </html>

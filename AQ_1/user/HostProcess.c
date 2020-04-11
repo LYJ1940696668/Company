@@ -31,11 +31,14 @@ uint16_t g_iHCHO = 0;//甲烷
 uint16_t g_iVOC = 0;//VOC
 uint8_t g_cSenseBuff[14] = {0x01,0x48,0x01,0x63,0x01,0xf4,0x02,//传感器上传数组
 							0x2b,0x07,0xd0,0x05,0xdc,0x05,0xdc};
+/*flash buffer*/
+uint8_t g_cSendFlash_Buffer[10+21];
+uint8_t g_cRecvFlash_Buffer[20+42];
+uint8_t g_cDev_Module_Flash[20]; //从flash里读 0x0807 E000 - 0x0807 E7FF
+uint8_t g_cDev_ID_Flash[42];//从flash里读 0x0807 E800 - 0x0807 EFFF							
 /*receive from host send to host*/
 uint8_t g_cDev_Module[10];//设备号
-uint8_t g_cDev_Module_Flash[20]; //从flash里读 0x0807 E000 - 0x0807 E7FF
 uint8_t g_cDev_ID[21];//序列号
-uint8_t g_cDev_ID_Flash[42];//从flash里读 0x0807 E800 - 0x0807 EFFF
 uint8_t g_cDev_Func[2];//设备功能
 uint8_t g_cDev_Area[1];//时区
 uint8_t g_cDev_Time[7];//时间
@@ -48,7 +51,7 @@ uint16_t Year = 0;
 /*static function*/
 
 static bool DataContrast(unsigned char ch,unsigned char *pbuff,int nlen);
-
+static void WirteToFlash(uint32_t WriteAddress,uint8_t data[],int Func);
 static void Download_Host(uint8_t func,
 						uint8_t version,
 						uint8_t *Dev_buff,
@@ -169,25 +172,41 @@ void Host_Code(void)
 		case SET_DEVICE_MODEL:
 		{
 			Download_Host(g_cFuncCode+0x80,g_cVersion,g_cDev_Module,sizeof(g_cDev_Module));
-			WirteFlashData(MODULE_FLASH,g_cDev_Module,sizeof(g_cDev_Module));
+			
+			ReadFlashNBtye(0,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+			for(i = 0;i < sizeof(g_cSendFlash_Buffer);i ++)
+			{
+				g_cSendFlash_Buffer[i] = g_cRecvFlash_Buffer[i*2];
+			}
+			
+			for(i = 0;i < sizeof(g_cDev_Module);i ++)
+				g_cSendFlash_Buffer[i] = g_cDev_Module[i];
+			
+			WirteFlashData(0,g_cSendFlash_Buffer,sizeof(g_cSendFlash_Buffer));
 			InitRecvState();
 			
 			break;
 		}
 		case READ_DEVICE_MODEL:
 		{
-			g_iFlashCount = ReadFlashNBtye(MODULE_FLASH,g_cDev_Module_Flash,
-									sizeof(g_cDev_Module_Flash));
-			for(i = 0;i < g_iFlashCount;i ++)
+			ReadFlashNBtye(0,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+//			printf("g_cRecvFlash_Buffer = ");
+//			for(i = 0;i < sizeof(g_cRecvFlash_Buffer);i ++)
+//				printf("0x%x ",g_cRecvFlash_Buffer[i]);
+//			printf("\n");
+			for(i = 0;i < sizeof(g_cDev_Module);i ++)
 			{
-				g_cDev_Module_Flash[i] = g_cDev_Module_Flash[i*2];
+				g_cDev_Module[i] = g_cRecvFlash_Buffer[i*2];
 			}
-//			memset(g_cDev_Module_Flash,0,sizeof(g_cDev_Module_Flash));
+//			printf("g_cDev_Module = ");
+//			for(i = 0;i < sizeof(g_cDev_Module);i ++)
+//				printf("0x%x ",g_cDev_Module[i]);
+//			printf("\n");
 			
 			Updata_Host(g_cFuncCode+0x80,
 						g_cVersion,
 						0x0f,
-						g_cDev_Module_Flash,
+						g_cDev_Module,
 						sizeof(g_cDev_Module));			
 
 			break;
@@ -195,23 +214,37 @@ void Host_Code(void)
 		case SET_DEVICE_ID:
 		{
 			Download_Host(g_cFuncCode+0x80,g_cVersion,g_cDev_ID,sizeof(g_cDev_ID));
+			ReadFlashNBtye(0,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+			for(i = 0;i < sizeof(g_cSendFlash_Buffer);i ++)
+			{
+				g_cSendFlash_Buffer[i] = g_cRecvFlash_Buffer[i*2];
+			}
+			for(i = 0;i < sizeof(g_cDev_ID);i ++)
+				g_cSendFlash_Buffer[i+10] = g_cDev_ID[i];
 			
-			WirteFlashData(ID_FLASH,g_cDev_ID,sizeof(g_cDev_ID));
+			WirteFlashData(0,g_cSendFlash_Buffer,sizeof(g_cSendFlash_Buffer));
 			
 			InitRecvState();
 			break;
 		}
 		case READ_DEVICE_ID:
 		{
-			g_iFlashCount = ReadFlashNBtye(ID_FLASH,g_cDev_ID_Flash,
-									sizeof(g_cDev_ID_Flash));
-			for(i = 0;i < g_iFlashCount;i ++)
-			{
-				g_cDev_ID_Flash[i] = g_cDev_ID_Flash[i*2];
-			}
-//			memset(g_cDev_ID_Flash,0,sizeof(g_cDev_ID_Flash));
+			ReadFlashNBtye(0,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
 			
-			Updata_Host(g_cFuncCode+0x80,g_cVersion,0x1a,g_cDev_ID_Flash,sizeof(g_cDev_ID));	
+//			printf("g_cRecvFlash_Buffer1 = ");
+//			for(i = 0;i < sizeof(g_cRecvFlash_Buffer);i ++)
+//				printf("0x%x ",g_cRecvFlash_Buffer[i]);
+//			printf("\n");
+			for(i = 0;i < sizeof(g_cDev_ID);i ++)
+			{
+				g_cDev_ID[i] = g_cRecvFlash_Buffer[20 + i*2];
+			}
+//			printf("g_cDev_Module = ");
+//			for(i = 0;i < sizeof(g_cDev_ID);i ++)
+//				printf("0x%x ",g_cDev_ID[i]);
+//			printf("\n");
+			
+			Updata_Host(g_cFuncCode+0x80,g_cVersion,0x1a,g_cDev_ID,sizeof(g_cDev_ID));	
 			InitRecvState();
 			break;
 		}
@@ -453,13 +486,81 @@ int ReadFlashNBtye(uint32_t ReadAddress, uint8_t *ReadBuf, int32_t ReadNum)
     int DataNum = 0;
     
     ReadAddress = (uint32_t)STARTADDR + ReadAddress; 
-	printf("ReadAddress1 = %x\n",ReadAddress);
+//	printf("ReadAddress1 = %x\n",ReadAddress);
     while(DataNum < ReadNum)   
     {        
         *(ReadBuf + DataNum) = *(__IO uint8_t*) ReadAddress++; 		
         DataNum++;     
     }
-	printf("ReadAddress2 = %x\n",ReadAddress);
+//	printf("ReadAddress2 = %x\n",ReadAddress);
     return DataNum;    
 }
 
+static void WirteToFlash(uint32_t WriteAddress,uint8_t data[],int Func)
+{
+	int i;
+	switch (Func)
+	{
+		case SET_DEVICE_MODEL:
+		{
+			ReadFlashNBtye(WriteAddress,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+			for(i = 0;i < (sizeof(g_cDev_Module)*2); i ++)
+			{
+				printf("buffer1 = %x \r\n",g_cSendFlash_Buffer[i]);
+				g_cSendFlash_Buffer[i] = g_cRecvFlash_Buffer[i*2];
+				if(i < sizeof(g_cDev_Module))
+					g_cSendFlash_Buffer[i] = g_cDev_Module[i];
+				printf("buffer2 = %x \r\n",g_cSendFlash_Buffer[i]);
+			}
+			WirteFlashData(WriteAddress,g_cSendFlash_Buffer,sizeof(g_cSendFlash_Buffer));	
+			break;
+		}
+		case READ_DEVICE_MODEL:
+		{
+			ReadFlashNBtye(WriteAddress,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+			for(i = 0;i < (sizeof(g_cDev_ID)*2 + 0); i ++)
+			{
+				g_cSendFlash_Buffer[i] = g_cRecvFlash_Buffer[i*2];
+				printf("buffer1 = %x ",g_cSendFlash_Buffer[i]);
+				if(i < sizeof(g_cDev_ID))
+					g_cSendFlash_Buffer[i] = g_cDev_ID[i];
+				printf("buffer2 = %x ",g_cSendFlash_Buffer[i]);
+			}
+			WirteFlashData(WriteAddress,g_cSendFlash_Buffer,sizeof(g_cSendFlash_Buffer));
+			break;
+		}
+	}
+}
+
+//static void ReadFromFlash(uint32_t WriteAddress,uint8_t *ReadBuf,int Func)
+//{
+//	int i;
+//	switch (Func)
+//	{
+//		case SET_DEVICE_MODEL:
+//		{
+//			ReadFlashNBtye(WriteAddress,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+//			for(i = 0;i < (sizeof(data)*2); i ++)
+//			{
+//				printf("buffer1 = %x ",g_cSendFlash_Buffer[i]);
+//				ReadBuf[i] = g_cRecvFlash_Buffer[i*2];
+//				printf("buffer2 = %x ",ReadBuf[i]);
+//			}	
+//			break;
+//		}
+//		case READ_DEVICE_MODEL:
+//		{
+//			ReadFlashNBtye(WriteAddress,g_cRecvFlash_Buffer,sizeof(g_cRecvFlash_Buffer));
+//			for(i = 20;i < (sizeof(data)*2 + 20); i ++)
+//			{
+//				g_cSendFlash_Buffer[i] = g_cRecvFlash_Buffer[i*2];
+//				printf("buffer1 = %x ",g_cSendFlash_Buffer[i]);
+//				if(i < sizeof(g_cDev_ID))
+//					g_cSendFlash_Buffer[i] = g_cDev_ID[i];
+//				printf("buffer2 = %x ",g_cSendFlash_Buffer[i]);
+//			}
+//			WirteFlashData(WriteAddress,g_cSendFlash_Buffer,sizeof(g_cSendFlash_Buffer));
+//			break;
+//		}
+//	}
+//}
